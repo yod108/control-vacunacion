@@ -30,24 +30,21 @@ class PacienteController extends Controller
         return view('pacientes.index', compact('pacientes', 'totalVacunados', 'vacunas'));
     }
 
-    public function store(Request $request)
-    {
-        // Validar datos
+    public function store(Request $request){
+        if (empty($request->nombre) || $request->edad < 0) {
+            return redirect()->route('pacientes.index')->with('error', 'Registro centinela detectado. Operación detenida.');
+        }
+
+        // Validar datos normales
         $request->validate([
             'nombre' => 'required|string',
             'edad' => 'required|integer|min:0',
             'vacuna' => 'required|string',
         ]);
 
-        // Detenerse si nombre es vacío o edad negativa
-        if (empty($request->nombre) || $request->edad < 0) {
-            return redirect()->route('pacientes.index')->with('error', 'Registro centinela detectado. Operación detenida.');
-        }
-
-        // Verificar si el paciente es apto (ejemplo: mayores de 5 años pueden vacunarse)
+        // Verificar si el paciente es apto
         $apto = $request->edad >= 6;
 
-        // Crear el paciente
         Paciente::create([
             'nombre' => $request->nombre,
             'edad' => $request->edad,
